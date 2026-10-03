@@ -1,0 +1,1295 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>SolarLab ⚡ Energía Solar Fotovoltaica · 2º ESO</title>
+<style>
+  :root{
+    --sky:#EAF4FB;
+    --sky-mid:#CFE8F7;
+    --sky-deep:#3E7CA6;
+    --navy:#12324A;
+    --navy-soft:#1E4A66;
+    --sun:#F5A623;
+    --sun-light:#FFD166;
+    --sun-glow: rgba(245,166,35,0.35);
+    --leaf:#3F9142;
+    --leaf-light:#8BC34A;
+    --ink:#16232E;
+    --white:#FFFFFF;
+    --danger:#D6484A;
+    --danger-bg:#FCE7E7;
+    --ok-bg:#E7F5E9;
+    --radius:18px;
+    --radius-sm:10px;
+    --shadow: 0 6px 20px rgba(18,50,74,0.14);
+    --shadow-sm: 0 2px 8px rgba(18,50,74,0.10);
+    --font-display: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+    --font-mono: 'Cascadia Code', 'Consolas', 'SFMono-Regular', ui-monospace, Menlo, monospace;
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; scroll-behavior: auto !important; }
+  }
+  *{ box-sizing: border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    font-family: var(--font-body);
+    background: linear-gradient(180deg, var(--sky) 0%, var(--sky-mid) 260px, #F7FBFD 600px);
+    color: var(--ink);
+    min-height: 100vh;
+    padding-bottom: 60px;
+  }
+  h1,h2,h3,h4{ font-family: var(--font-display); font-weight: 800; color: var(--navy); margin: 0 0 8px 0; letter-spacing: -0.01em; }
+  p{ line-height: 1.55; }
+  button{ font-family: inherit; cursor: pointer; }
+  .mono{ font-family: var(--font-mono); }
+
+  /* ===== HEADER / BATERÍA GLOBAL ===== */
+  header.app-header{
+    position: sticky; top:0; z-index: 50;
+    background: rgba(255,255,255,0.92);
+    backdrop-filter: blur(6px);
+    border-bottom: 2px solid var(--sky-mid);
+    padding: 10px 16px;
+  }
+  .header-inner{
+    max-width: 1100px; margin:0 auto;
+    display:flex; align-items:center; gap:16px; flex-wrap: wrap;
+  }
+  .brand{ display:flex; align-items:center; gap:10px; font-weight:800; color: var(--navy); font-size: 1.15rem; white-space:nowrap;}
+  .brand-dot{ font-size:1.4rem; }
+  .battery-wrap{ display:flex; align-items:center; gap:10px; flex:1; min-width:220px;}
+  .battery-shell{
+    position:relative; flex:1; max-width:340px; height:30px;
+    border: 3px solid var(--navy); border-radius: 8px;
+    background: #fff; overflow:hidden;
+  }
+  .battery-shell::after{
+    content:''; position:absolute; right:-9px; top:8px; width:6px; height:14px;
+    background: var(--navy); border-radius: 0 3px 3px 0;
+  }
+  .battery-fill{
+    height:100%; width:0%;
+    background: linear-gradient(90deg, var(--leaf) 0%, var(--leaf-light) 40%, var(--sun) 100%);
+    transition: width .5s ease;
+  }
+  .battery-label{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    font-weight:700; font-size:.8rem; color: var(--navy); text-shadow: 0 1px 0 rgba(255,255,255,.6);
+  }
+  .vatios-count{ font-weight:800; color: var(--sun); font-family: var(--font-mono); font-size:1.05rem; white-space:nowrap;}
+
+  /* ===== NAV ===== */
+  nav.tabs{
+    max-width: 1100px; margin: 14px auto 0 auto; padding: 0 16px;
+    display:flex; gap:8px; flex-wrap:wrap;
+  }
+  .tab-btn{
+    border: 2px solid var(--sky-deep); background: #fff; color: var(--navy-soft);
+    padding: 10px 14px; border-radius: 999px; font-weight:700; font-size:.85rem;
+    min-height:44px; transition: all .15s ease;
+  }
+  .tab-btn:hover{ background: var(--sky-mid); }
+  .tab-btn.active{ background: var(--navy); color:#fff; border-color: var(--navy); }
+  .tab-btn:focus-visible{ outline: 3px solid var(--sun); outline-offset:2px; }
+
+  main{ max-width: 1100px; margin: 20px auto; padding: 0 16px; }
+  .view{ display:none; animation: fadeIn .3s ease; }
+  .view.active{ display:block; }
+  @keyframes fadeIn{ from{opacity:0; transform: translateY(6px);} to{opacity:1; transform:translateY(0);} }
+
+  .card{
+    background:#fff; border-radius: var(--radius); box-shadow: var(--shadow-sm);
+    padding: 20px; margin-bottom: 18px; border: 1px solid #E3EEF5;
+  }
+  .intro-banner{
+    background: linear-gradient(135deg, var(--navy) 0%, var(--sky-deep) 100%);
+    color:#fff; border-radius: var(--radius); padding: 24px; margin-bottom:20px;
+    box-shadow: var(--shadow);
+  }
+  .intro-banner h2{ color:#fff; font-size:1.5rem;}
+  .intro-banner p{ color: #E4F1FB; margin:0;}
+
+  /* ===== ACORDEÓN ===== */
+  .accordion-item{
+    border: 2px solid var(--sky-mid); border-radius: var(--radius); margin-bottom: 12px; overflow:hidden; background:#fff;
+  }
+  .accordion-header{
+    width:100%; display:flex; align-items:center; gap:12px; justify-content:space-between;
+    padding: 14px 18px; background: var(--sky); border:none; text-align:left; min-height:44px;
+  }
+  .accordion-header .htxt{ display:flex; align-items:center; gap:10px; font-weight:800; color: var(--navy); font-size:1.02rem;}
+  .accordion-header .chip{
+    font-size:.7rem; font-weight:700; padding:3px 9px; border-radius:999px; background:#fff; color: var(--sky-deep); border:1px solid var(--sky-deep);
+  }
+  .accordion-header .chip.done{ background: var(--ok-bg); color: var(--leaf); border-color: var(--leaf);}
+  .accordion-body{ max-height:0; overflow:hidden; transition: max-height .35s ease; }
+  .accordion-body.open{ max-height: 4000px; }
+  .accordion-body-inner{ padding: 6px 20px 20px 20px; }
+  .accordion-body-inner strong{ color: var(--sky-deep); }
+  .arrow{ transition: transform .25s ease; }
+  .accordion-header.open .arrow{ transform: rotate(180deg); }
+
+  .mini-check{ background: var(--sky); border-radius: var(--radius-sm); padding:14px; margin-top:12px;}
+  .mini-check p{ margin:0 0 8px 0; font-weight:700; color: var(--navy);}
+  .opt-btn{
+    display:block; width:100%; text-align:left; margin-bottom:6px; padding:10px 12px; border-radius: var(--radius-sm);
+    border:2px solid var(--sky-deep); background:#fff; font-weight:600; min-height:44px;
+  }
+  .opt-btn:hover{ background: var(--sky-mid); }
+  .opt-btn.correct{ background: var(--ok-bg); border-color: var(--leaf); color: var(--leaf); }
+  .opt-btn.incorrect{ background: var(--danger-bg); border-color: var(--danger); color: var(--danger); }
+  .feedback-box{ margin-top:8px; font-size:.9rem; font-weight:600; }
+
+  .btn-primary{
+    background: var(--sun); color: var(--navy); border:none; border-radius: 999px;
+    padding: 10px 18px; font-weight:800; font-size:.9rem; min-height:44px; box-shadow: var(--shadow-sm);
+  }
+  .btn-primary:hover{ background: var(--sun-light); }
+  .btn-primary:disabled{ opacity:.5; cursor:default; }
+  .btn-secondary{
+    background:#fff; color: var(--navy); border:2px solid var(--navy); border-radius: 999px;
+    padding: 9px 16px; font-weight:700; font-size:.85rem; min-height:44px;
+  }
+  .btn-secondary:hover{ background: var(--sky); }
+  .btn-leido{
+    background: var(--leaf); color:#fff; border:none; border-radius: 999px; padding:10px 16px; font-weight:700; min-height:44px;
+  }
+  .btn-leido:disabled{ background: #9BC79E; }
+
+  /* ===== CÉLULA FOTOVOLTAICA INTERACTIVA ===== */
+  .cell-stage{
+    background: linear-gradient(180deg, #FFF7E8 0%, #fff 60%);
+    border-radius: var(--radius); padding: 20px; position:relative; min-height: 340px;
+    border: 2px dashed var(--sun);
+    overflow:hidden;
+  }
+  .component-diagram-box{
+    background: linear-gradient(180deg, #F7FBFD 0%, #fff 60%);
+    border-radius: var(--radius); padding: 14px 10px; margin: 14px 0;
+    border: 2px dashed var(--sky-deep);
+    overflow-x:auto;
+  }
+  .component-diagram-box svg{ display:block; margin:0 auto; min-width: 620px; max-width: 720px; width:100%; height:auto; }
+  .diagram-icon{ cursor:pointer; }
+  .diagram-icon:hover rect, .diagram-icon:hover circle{ filter: brightness(1.08); }
+  .diagram-icon:focus-visible{ outline: 3px solid var(--sun); outline-offset: 3px; }
+  svg#cellSvg{ width:100%; height:320px; display:block; }
+  .electron-count{ font-family: var(--font-mono); font-weight:800; color: var(--sky-deep); }
+
+  /* ===== SIMULADOR ===== */
+  .sim-grid{ display:grid; grid-template-columns: 1fr 1fr; gap:20px; }
+  @media (max-width: 720px){ .sim-grid{ grid-template-columns: 1fr; } }
+  .sim-controls label{ display:block; font-weight:700; color: var(--navy); margin: 12px 0 6px 0; font-size:.9rem;}
+  .sim-controls input[type=range]{ width:100%; }
+  .sim-controls select{ width:100%; padding:10px; border-radius: var(--radius-sm); border:2px solid var(--sky-deep); font-weight:600; min-height:44px; }
+  .sim-stage{ background: linear-gradient(180deg,#BEE3F8 0%, #EAF4FB 60%, #DCEFE0 100%); border-radius: var(--radius); position:relative; min-height:320px; overflow:hidden; }
+  .gauge-box{ text-align:center; margin-top:10px; }
+  .gauge-num{ font-family: var(--font-mono); font-size:2rem; font-weight:800; color: var(--navy); }
+  .gauge-bar-shell{ background:#fff; border:2px solid var(--navy); border-radius:999px; height:22px; overflow:hidden; margin-top:6px;}
+  .gauge-bar-fill{ height:100%; background: linear-gradient(90deg, var(--danger) 0%, var(--sun) 50%, var(--leaf) 100%); width:0%; transition: width .4s ease; }
+
+  /* ===== MONTAJE ===== */
+  .install-row{ display:flex; gap:16px; flex-wrap:wrap; margin-top: 12px;}
+  .install-pool, .install-seq{ flex:1; min-width:260px; }
+  .install-piece{
+    display:inline-block; margin:5px; padding:12px 16px; border-radius: var(--radius-sm);
+    background: var(--sky-deep); color:#fff; font-weight:700; border:none; min-height:44px;
+  }
+  .install-piece:disabled{ opacity:.35; }
+  .install-seq-list{ list-style: decimal; padding-left: 22px; min-height:40px; }
+  .install-seq-list li{ padding: 8px 10px; background: var(--ok-bg); border-radius: var(--radius-sm); margin-bottom:6px; font-weight:700; color: var(--leaf); }
+
+  /* ===== TEJADO ===== */
+  .roof-grid{ display:grid; grid-template-columns: repeat(6, 1fr); gap:6px; max-width:520px; margin: 14px auto;}
+  .roof-cell{
+    aspect-ratio: 1/1; border-radius: 8px; border:2px solid var(--sky-deep); background:#fff;
+    display:flex; align-items:center; justify-content:center; font-size:1.3rem; min-height:44px;
+  }
+  .roof-cell.shadow{ background: repeating-linear-gradient(45deg,#B9C4CC,#B9C4CC 6px,#9DA9B2 6px,#9DA9B2 12px); border-color:#7C8A93; }
+  .roof-cell.panel{ background: linear-gradient(135deg, var(--navy) 0%, var(--sky-deep) 100%); }
+  .stars-row{ text-align:center; font-size:2rem; margin-top: 6px;}
+
+  /* ===== FALLOS ===== */
+  .fault-card{ background: var(--sky); border-radius: var(--radius); padding:16px; margin-bottom:14px;}
+  .fault-options{ display:grid; grid-template-columns: repeat(auto-fit,minmax(160px,1fr)); gap:8px; margin-top:10px;}
+
+  /* ===== TEST ===== */
+  .q-card{ margin-bottom:16px; }
+  .q-card h4{ font-size:1rem; }
+  .q-block-tag{ font-size:.7rem; font-weight:700; color: var(--sky-deep); text-transform:uppercase; letter-spacing:.03em;}
+
+  .medal-badge{
+    display:inline-flex; align-items:center; gap:10px; padding:14px 20px; border-radius: var(--radius);
+    font-weight:800; font-size:1.1rem; margin-top: 10px;
+  }
+  .medal-oro{ background:#FFF3D6; color:#946200; border:2px solid #F5A623; }
+  .medal-plata{ background:#EEF2F5; color:#5B6B76; border:2px solid #AFC0C9; }
+  .medal-bronce{ background:#FBE7DA; color:#9A5324; border:2px solid #D98A4C; }
+  .medal-semilla{ background:#E7F5E9; color:#3F9142; border:2px solid #8BC34A; }
+
+  .semaforo{ display:flex; gap:14px; justify-content:center; margin: 16px 0;}
+  .semaforo button{ font-size:2.4rem; background:none; border:3px solid transparent; border-radius:999px; padding:8px 14px; min-height:44px;}
+  .semaforo button.selected{ border-color: var(--navy); background: var(--sky);}
+  textarea{ width:100%; border:2px solid var(--sky-deep); border-radius: var(--radius-sm); padding:10px; font-family: inherit; min-height:90px;}
+
+  .toast{
+    position: fixed; bottom: 20px; left:50%; transform: translateX(-50%);
+    background: var(--navy); color:#fff; padding: 12px 20px; border-radius: 999px; font-weight:700;
+    box-shadow: var(--shadow); z-index: 100; opacity:0; pointer-events:none; transition: opacity .3s, transform .3s;
+    max-width: 90vw; text-align:center;
+  }
+  .toast.show{ opacity:1; transform: translateX(-50%) translateY(-8px); }
+
+  footer.credits{ text-align:center; color: var(--sky-deep); font-size:.8rem; margin-top: 40px; }
+  .visually-hidden{ position:absolute; width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);}
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="header-inner">
+    <div class="brand"><span class="brand-dot">☀️</span> SolarLab <span style="font-weight:600; font-size:.7rem; color:var(--sky-deep); margin-left:4px;">2º ESO</span></div>
+    <div class="battery-wrap">
+      <div class="battery-shell" role="progressbar" aria-label="Batería de vatios acumulados" aria-valuemin="0" aria-valuemax="100" id="batteryBar">
+        <div class="battery-fill" id="batteryFill"></div>
+        <div class="battery-label" id="batteryLabel">0%</div>
+      </div>
+      <span class="vatios-count" id="vatiosCount">⚡ 0</span>
+    </div>
+  </div>
+  <nav class="tabs" id="tabsNav">
+    <button class="tab-btn active" data-view="teoria">📘 Teoría</button>
+    <button class="tab-btn" data-view="celula">🔬 Célula interactiva</button>
+    <button class="tab-btn" data-view="simulador">🌤️ Simulador</button>
+    <button class="tab-btn" data-view="montaje">🔧 Montaje</button>
+    <button class="tab-btn" data-view="tejado">🏠 Optimiza tu tejado</button>
+    <button class="tab-btn" data-view="fallo">🛠️ Detecta el fallo</button>
+    <button class="tab-btn" data-view="test">📝 Test final</button>
+    <button class="tab-btn" data-view="auto">🚦 Autoevaluación</button>
+  </nav>
+</header>
+
+<main>
+
+  <!-- ===================== TEORÍA ===================== -->
+  <section class="view active" id="view-teoria">
+    <div class="intro-banner">
+      <h2>SolarLab ⚡</h2>
+      <p>Lee los 6 bloques, marca "He leído este bloque" y responde a la mini-pregunta de cada uno. Todo lo que aparece aquí puede salir en el test final, así que léelo con calma.</p>
+    </div>
+    <div id="accordionContainer"></div>
+  </section>
+
+  <!-- ===================== CÉLULA INTERACTIVA ===================== -->
+  <section class="view" id="view-celula">
+    <div class="card">
+      <h2>🔬 Lanza fotones y observa la célula fotovoltaica</h2>
+      <p>Pulsa el botón para lanzar un fotón. Si golpea la unión N-P con energía suficiente, liberará un electrón que viajará por el circuito hasta encender la bombilla.</p>
+      <div class="cell-stage">
+        <svg id="cellSvg" viewBox="0 0 700 320" xmlns="http://www.w3.org/2000/svg" aria-label="Animación de célula fotovoltaica"></svg>
+      </div>
+      <div style="text-align:center; margin-top:14px;">
+        <button class="btn-primary" id="launchPhotonBtn">☀️ Lanzar fotón</button>
+        <p style="margin-top:10px;">Electrones liberados: <span class="electron-count" id="electronCount">0</span></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== SIMULADOR ===================== -->
+  <section class="view" id="view-simulador">
+    <div class="card">
+      <h2>🌤️ Simulador de producción</h2>
+      <p>Ajusta la inclinación del panel, la estación del año y el clima, y comprueba cómo cambia la producción.</p>
+      <div class="sim-grid">
+        <div class="sim-controls">
+          <label for="tiltRange">Inclinación del panel: <span id="tiltVal">30</span>°</label>
+          <input type="range" id="tiltRange" min="0" max="90" value="30">
+          <label for="seasonSelect">Estación del año</label>
+          <select id="seasonSelect">
+            <option value="verano">Verano</option>
+            <option value="primavera">Primavera</option>
+            <option value="otono">Otoño</option>
+            <option value="invierno">Invierno</option>
+          </select>
+          <label for="weatherSelect">Meteorología</label>
+          <select id="weatherSelect">
+            <option value="soleado">Soleado</option>
+            <option value="parcial">Parcialmente nublado</option>
+            <option value="nublado">Nublado</option>
+            <option value="lluvia">Lluvia</option>
+          </select>
+          <div style="text-align:center; margin-top:16px;">
+            <button class="btn-primary" id="calcSimBtn">Calcular producción</button>
+          </div>
+          <div class="gauge-box">
+            <div class="gauge-num"><span id="prodVal">0</span> W/m²</div>
+            <div class="gauge-bar-shell"><div class="gauge-bar-fill" id="prodBar"></div></div>
+          </div>
+        </div>
+        <div class="sim-stage">
+          <svg id="simSvg" viewBox="0 0 400 320" width="100%" height="320" aria-label="Visualización del simulador"></svg>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== MONTAJE ===================== -->
+  <section class="view" id="view-montaje">
+    <div class="card">
+      <h2>🔧 Monta la instalación en orden</h2>
+      <p>Pulsa las piezas en el orden correcto en el que fluye la energía, desde que sale del panel hasta que llega a un aparato de casa.</p>
+      <div class="install-row">
+        <div class="install-pool">
+          <h4>Piezas disponibles</h4>
+          <div id="installPool"></div>
+        </div>
+        <div class="install-seq">
+          <h4>Tu secuencia</h4>
+          <ol class="install-seq-list" id="installSeq"></ol>
+        </div>
+      </div>
+      <div style="text-align:center; margin-top:12px;">
+        <button class="btn-secondary" id="installResetBtn">🔄 Reiniciar intento</button>
+      </div>
+      <p id="installFeedback" style="text-align:center; font-weight:700;"></p>
+    </div>
+  </section>
+
+  <!-- ===================== TEJADO ===================== -->
+  <section class="view" id="view-tejado">
+    <div class="card">
+      <h2>🏠 Optimiza tu tejado</h2>
+      <p>Coloca paneles en las casillas soleadas y evita las casillas con sombra (chimenea, antena, árbol). Tienes un presupuesto de <strong id="roofBudgetLabel">12</strong> paneles.</p>
+      <div class="roof-grid" id="roofGrid"></div>
+      <p style="text-align:center; font-weight:700;">Paneles colocados: <span id="roofPlaced">0</span> / <span id="roofBudget">12</span></p>
+      <div style="text-align:center;">
+        <button class="btn-primary" id="roofCalcBtn">☀️ Calcular producción del tejado</button>
+        <button class="btn-secondary" id="roofResetBtn">🔄 Reiniciar</button>
+      </div>
+      <div class="stars-row" id="roofStars"></div>
+      <p id="roofFeedback" style="text-align:center;"></p>
+    </div>
+  </section>
+
+  <!-- ===================== FALLO ===================== -->
+  <section class="view" id="view-fallo">
+    <div class="card">
+      <h2>🛠️ Detecta el fallo</h2>
+      <p>Lee cada síntoma y señala qué componente es el culpable más probable.</p>
+      <div id="faultContainer"></div>
+    </div>
+  </section>
+
+  <!-- ===================== TEST ===================== -->
+  <section class="view" id="view-test">
+    <div class="card">
+      <h2>📝 Test final</h2>
+      <p>12 preguntas, dos por cada bloque teórico. Si fallas alguna, te decimos qué bloque conviene repasar.</p>
+      <div id="testContainer"></div>
+      <div style="text-align:center; margin-top:10px;">
+        <button class="btn-primary" id="submitTestBtn">Corregir test</button>
+      </div>
+      <div id="testResult" style="text-align:center;"></div>
+    </div>
+  </section>
+
+  <!-- ===================== AUTOEVALUACIÓN ===================== -->
+  <section class="view" id="view-auto">
+    <div class="card">
+      <h2>🚦 Autoevaluación final</h2>
+      <p>Con sinceridad: ¿cómo crees que dominas la energía solar fotovoltaica después de esta sesión?</p>
+      <div class="semaforo">
+        <button data-val="verde" aria-label="Verde: lo entiendo bien">🟢</button>
+        <button data-val="amarillo" aria-label="Amarillo: más o menos">🟡</button>
+        <button data-val="rojo" aria-label="Rojo: necesito repasar">🔴</button>
+      </div>
+      <label for="autoNote" style="font-weight:700;">¿Qué parte te ha costado más o te gustaría repasar?</label>
+      <textarea id="autoNote" placeholder="Escribe aquí..."></textarea>
+      <div style="text-align:center; margin-top:12px;">
+        <button class="btn-primary" id="saveAutoBtn">Guardar autoevaluación</button>
+      </div>
+      <p id="autoFeedback" style="text-align:center; font-weight:700;"></p>
+    </div>
+  </section>
+
+</main>
+
+<div class="toast" id="toast"></div>
+
+<footer class="credits">
+  <div style="display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap;">
+    <span>SolarLab · Recurso didáctico para Tecnología de 2º ESO · Jesús Beltrán Pérez</span>
+    <span style="display:inline-flex; align-items:center; gap:3px;" aria-hidden="true">
+      <svg width="20" height="20" viewBox="0 0 32 32"><circle cx="16" cy="16" r="14.5" fill="none" stroke="currentColor" stroke-width="1.6"/><text x="16" y="21" text-anchor="middle" font-size="13" font-weight="800" fill="currentColor">CC</text></svg>
+      <svg width="20" height="20" viewBox="0 0 32 32"><circle cx="16" cy="16" r="14.5" fill="none" stroke="currentColor" stroke-width="1.6"/><text x="16" y="21" text-anchor="middle" font-size="11" font-weight="800" fill="currentColor">BY</text></svg>
+      <svg width="20" height="20" viewBox="0 0 32 32"><circle cx="16" cy="16" r="14.5" fill="none" stroke="currentColor" stroke-width="1.6"/><text x="16" y="21" text-anchor="middle" font-size="11" font-weight="800" fill="currentColor">NC</text></svg>
+    </span>
+    <a href="https://creativecommons.org/licenses/by-nc/4.0/deed.es" target="_blank" rel="noopener" style="color:inherit;">Licencia Creative Commons BY-NC 4.0 (uso no comercial)</a>
+  </div>
+</footer>
+
+<script>
+/* ============================================================
+   SOLARLAB — LÓGICA DE LA APLICACIÓN
+   ============================================================ */
+const MAX_VATIOS = 350;
+const ROOF_BUDGET = 12;
+
+/* ---------- ESTADO ---------- */
+const state = {
+  vatios: 0,
+  blocksRead: [false,false,false,false,false,false],
+  miniCheckDone: [false,false,false,false,false,false],
+  miniCheckCorrect: [null,null,null,null,null,null],
+  photonsLaunched: 0,
+  photonBonusGiven: false,
+  simCalculations: 0,
+  simBestProd: 0,
+  simBonusGiven: false,
+  installSeq: [],
+  installCompleted: false,
+  installAttempts: 0,
+  roofPlaced: new Set(),
+  roofStars: 0,
+  roofBestValid: 0,
+  faultAnswered: {},
+  faultCorrectCount: 0,
+  testAnswers: {},
+  testSubmitted: false,
+  testScore: 0,
+  testFailedBlocks: [],
+  medal: null,
+  selfAssessment: null,
+  selfNote: ""
+};
+
+function loadState(){
+  /* Sin persistencia entre sesiones a propósito: en ordenadores compartidos por
+     varios grupos, cada alumno/a debe empezar siempre desde cero, sin rastro
+     del progreso de quien usó el equipo antes. El estado vive solo en memoria
+     mientras la pestaña está abierta. */
+}
+function persistState(){
+  /* No-op intencionado: no se guarda nada en localStorage ni en ningún otro
+     almacenamiento del navegador. Al recargar o cerrar la pestaña, el progreso
+     se pierde por diseño. */
+}
+
+/* ---------- VATIOS / BATERÍA ---------- */
+function addVatios(n, msg){
+  state.vatios += n;
+  updateBatteryUI();
+  if(msg) showToast(`⚡ +${n} vatios — ${msg}`);
+  persistState();
+}
+function updateBatteryUI(){
+  const pct = Math.max(0, Math.min(100, Math.round((state.vatios / MAX_VATIOS) * 100)));
+  document.getElementById('batteryFill').style.width = pct + '%';
+  document.getElementById('batteryLabel').textContent = pct + '%';
+  document.getElementById('batteryBar').setAttribute('aria-valuenow', pct);
+  document.getElementById('vatiosCount').textContent = `⚡ ${state.vatios}`;
+}
+
+/* ---------- TOAST ---------- */
+let toastTimer = null;
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=> t.classList.remove('show'), 2600);
+}
+
+/* ---------- NAVEGACIÓN ---------- */
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('view-' + btn.dataset.view).classList.add('active');
+    window.scrollTo({top:0, behavior:'smooth'});
+  });
+});
+
+/* ============================================================
+   DATOS: BLOQUES TEÓRICOS
+   ============================================================ */
+const blocksData = [
+{
+  title: "La energía que nos llega del Sol",
+  icon: "☀️",
+  html: `<p>El Sol es como una central nuclear gigante, a 150 millones de kilómetros de la Tierra. En su centro pasa algo brutal: átomos de hidrógeno se juntan (eso es la <strong>fusión nuclear</strong>) y forman helio, soltando una energía enorme.</p>
+  <p>Esa energía viaja por el espacio en forma de luz y calor — lo llamamos <strong>radiación</strong> — y una parte llega hasta nosotros. Para medir cuánta energía solar cae sobre un sitio usamos la <strong>irradiancia</strong>, que se mide en <strong>W/m²</strong> (vatios por metro cuadrado). Imagina que el Sol te "ducha" de energía: cuanta más irradiancia, más fuerte es la ducha. A mediodía en verano puede llegar a 1000 W/m²; un día de invierno nublado, mucho menos — como la diferencia entre una ducha a tope y un grifo goteando.</p>
+  <p>El Sol es energía <strong>renovable</strong>: no se agota (al menos no en los próximos 5.000 millones de años) y no contamina al aprovecharla. Además, está detrás de casi todas las demás energías renovables: el viento existe porque el Sol calienta el aire de forma desigual.</p>`,
+  miniCheck: { q:"¿Qué unidad se usa para medir la irradiancia solar?", options:["Vatios (W)","Vatios por metro cuadrado (W/m²)","Kilovatios-hora (kWh)","Grados Celsius (°C)"], correct:1,
+    feedback:"La irradiancia mide potencia por superficie: cuánta energía solar cae sobre cada metro cuadrado en un instante dado." },
+  testQuestions: [
+    { q:"¿Qué proceso ocurre en el núcleo del Sol y genera su energía?", options:["Fisión nuclear","Fusión nuclear","Combustión química","Una reacción eléctrica"], correct:1,
+      explain:"En el núcleo solar, átomos de hidrógeno se fusionan para formar helio: eso es fusión nuclear." },
+    { q:"¿Qué mide exactamente la irradiancia?", options:["La temperatura del panel","La potencia solar que llega a una superficie por m²","La energía total acumulada en un año","El voltaje de una célula"], correct:1,
+      explain:"La irradiancia es potencia instantánea por unidad de superficie, en W/m²." }
+  ]
+},
+{
+  title: "Térmica vs. fotovoltaica",
+  icon: "🔀",
+  html: `<p>Aquí es muy fácil liarse, así que vamos con un truco sencillo:</p>
+  <p><strong>Solar térmica</strong> = el Sol <strong>calienta algo</strong> (normalmente agua). Es como dejar una botella de agua al sol durante el recreo: se calienta, pero sigue siendo agua. Se usa para tener agua caliente en casa.</p>
+  <p><strong>Solar fotovoltaica</strong> = el Sol <strong>genera electricidad directamente</strong>, sin calentar nada antes. La luz se transforma en corriente eléctrica dentro del propio panel.</p>
+  <p><strong>El truco para no confundirlos nunca más:</strong> si el panel parece una cuadrícula azul oscuro y de él salen cables → fotovoltaico. Si parece una caja plana con tubos por dentro y de ella sale agua caliente → térmico. Piensa en una calculadora solar (fotovoltaica) frente a un calentador de agua en una piscina (térmico).</p>`,
+  miniCheck: { q:"Un panel que calienta agua para la ducha de tu casa, ¿es térmico o fotovoltaico?", options:["Térmico","Fotovoltaico"], correct:0,
+    feedback:"Correcto: si lo que hace es calentar un fluido (agua), es solar térmica, no fotovoltaica." },
+  testQuestions: [
+    { q:"¿Cuál es la diferencia principal entre un panel térmico y uno fotovoltaico?", options:["El térmico genera electricidad y el fotovoltaico calienta agua","El térmico calienta un fluido y el fotovoltaico genera electricidad directamente","No hay ninguna diferencia real","El fotovoltaico solo funciona de noche"], correct:1,
+      explain:"El térmico transfiere calor a un fluido; el fotovoltaico convierte luz en electricidad en el propio material." },
+    { q:"¿Cuál es el truco visual para reconocer un panel fotovoltaico?", options:["Tiene tubos de agua saliendo de él","Tiene cables eléctricos y aspecto de cuadrícula azulada/oscura","Siempre es de color blanco","Nunca tiene ningún cable"], correct:1,
+      explain:"Los paneles fotovoltaicos muestran la cuadrícula de células y salen de ellos cables eléctricos, no tuberías." }
+  ]
+},
+{
+  title: "La célula fotovoltaica",
+  icon: "🔬",
+  html: `<p><strong>El fotón y el efecto fotoeléctrico:</strong> la luz del Sol viaja en forma de partículas de energía llamadas <strong>fotones</strong>. Cuando un fotón golpea ciertos materiales con energía suficiente, puede arrancar un <strong>electrón</strong> de su sitio, dejándolo libre para moverse. A esto se le llama <strong>efecto fotoeléctrico</strong> (Einstein ganó el Nobel por explicarlo, no por la relatividad).</p>
+  <p><strong>El silicio</strong> es el material estrella: el segundo elemento más abundante de la corteza terrestre (está en la arena). Puro es mal conductor, así que hay que "trucarlo" un poco.</p>
+  <p><strong>El dopaje: una pizca de sal que cambia el sabor.</strong> Se añaden pequeñas cantidades de otros elementos al silicio, y con muy poca cantidad cambian completamente sus propiedades, igual que una pizca de sal transforma un plato entero.</p>
+  <p>Si se dopa con fósforo, sobran electrones que buscan salir → <strong>capa N</strong>. Si se dopa con boro, faltan electrones y quedan "huecos" → <strong>capa P</strong>.</p>
+  <p><strong>La unión N-P: como el torniquete de la entrada del metro.</strong> Seguro que alguna vez has pasado por un torniquete — en el metro, en un estadio, en una feria. Empujas hacia un lado y gira, dejándote pasar. Pero si intentas empujarlo hacia el lado contrario, no cede: ese torniquete solo deja pasar en un sentido.</p>
+  <p>Pues la unión N-P hace justo eso con los electrones. Al juntar la capa N y la capa P se forma una zona que actúa como ese torniquete: cuando un fotón libera un electrón cerca de ahí, el electrón puede cruzar hacia la capa N... pero una vez cruzado, no hay manera de que vuelva a cruzar hacia la capa P por el mismo sitio. En ese sentido, el torniquete no gira.</p>
+  <div class="component-diagram-box">
+    <svg viewBox="0 0 460 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagrama de un torniquete de un solo sentido entre la capa P y la capa N: el electrón puede pasar de P a N, pero no puede volver de N a P por el mismo sitio">
+      <rect x="20" y="65" width="140" height="80" fill="#9AD1F0" stroke="#12324A" stroke-width="2" rx="8"/>
+      <text x="90" y="112" text-anchor="middle" font-size="15" font-weight="800" fill="#12324A">Capa P</text>
+
+      <rect x="300" y="65" width="140" height="80" fill="#F5D48A" stroke="#946200" stroke-width="2" rx="8"/>
+      <text x="370" y="112" text-anchor="middle" font-size="15" font-weight="800" fill="#946200">Capa N</text>
+
+      <line x1="230" y1="55" x2="230" y2="155" stroke="#12324A" stroke-width="4"/>
+      <circle cx="230" cy="105" r="22" fill="#fff" stroke="#12324A" stroke-width="3"/>
+      <line x1="230" y1="105" x2="230" y2="86" stroke="#12324A" stroke-width="3"/>
+      <line x1="230" y1="105" x2="213" y2="115" stroke="#12324A" stroke-width="3"/>
+      <line x1="230" y1="105" x2="247" y2="115" stroke="#12324A" stroke-width="3"/>
+
+      <circle cx="168" cy="80" r="7" fill="#3E7CA6"/>
+      <path d="M 168 80 Q 200 75, 225 90" fill="none" stroke="#3F9142" stroke-width="3"/>
+      <polygon points="220,84 232,90 219,96" fill="#3F9142"/>
+      <text x="230" y="45" text-anchor="middle" font-size="12" font-weight="700" fill="#3F9142">✅ empuja y pasa</text>
+
+      <path d="M 292 130 L 245 122" fill="none" stroke="#D6484A" stroke-width="3" stroke-dasharray="4 4"/>
+      <text x="270" y="128" text-anchor="middle" font-size="16">🚫</text>
+      <text x="230" y="175" text-anchor="middle" font-size="12" font-weight="700" fill="#D6484A">❌ no puede volver por aquí</text>
+    </svg>
+  </div>
+  <p>Entonces, ¿cómo vuelve el electrón a su sitio? <strong>Dando un rodeo por fuera.</strong> Como no puede cruzar otra vez la unión, escapa por el cable que conectamos a la célula, recorre el circuito exterior —encendiendo por el camino una bombilla o haciendo funcionar un motor— y así regresa, por fuera, a la capa P. Ese desfile ordenado de electrones dando la vuelta es la <strong>corriente eléctrica</strong>.</p>
+  <div class="component-diagram-box">
+    <svg viewBox="0 0 420 190" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagrama de un circuito simple: la célula solar envía el electrón por un cable hasta una bombilla, que se enciende, y el electrón vuelve a la célula por otro cable">
+      <rect x="20" y="55" width="110" height="70" fill="#12324A" stroke="#3E7CA6" stroke-width="2" rx="8"/>
+      <text x="75" y="86" text-anchor="middle" font-size="13" font-weight="800" fill="#fff">Célula</text>
+      <text x="75" y="102" text-anchor="middle" font-size="13" font-weight="800" fill="#fff">solar</text>
+
+      <path d="M 130 70 L 300 70" fill="none" stroke="#3F9142" stroke-width="3"/>
+      <polygon points="270,64 284,70 270,76" fill="#3F9142"/>
+      <text x="210" y="55" text-anchor="middle" font-size="11" font-weight="700" fill="#3F9142">sale por aquí</text>
+
+      <circle cx="330" cy="90" r="26" fill="#FFF3D6" stroke="#946200" stroke-width="2.5"/>
+      <text x="330" y="98" text-anchor="middle" font-size="22">💡</text>
+
+      <path d="M 300 112 L 130 112" fill="none" stroke="#3E7CA6" stroke-width="3"/>
+      <polygon points="160,106 146,112 160,118" fill="#3E7CA6"/>
+      <text x="210" y="135" text-anchor="middle" font-size="11" font-weight="700" fill="#3E7CA6">vuelve por aquí</text>
+
+      <text x="210" y="170" text-anchor="middle" font-size="11" font-style="italic" fill="#3E7CA6">Célula → cable → bombilla → cable → célula: eso es el circuito eléctrico.</text>
+    </svg>
+  </div>`,
+  miniCheck: { q:"¿Qué hace un fotón para que se libere un electrón en la célula?", options:["La golpea con energía suficiente (efecto fotoeléctrico)","La enfría bruscamente","La imanta","No hace falta ningún fotón"], correct:0,
+    feedback:"Exacto: el fotón transfiere su energía y arranca un electrón de su posición." },
+  testQuestions: [
+    { q:"¿Qué material se dopa para fabricar la mayoría de células fotovoltaicas?", options:["Silicio","Hierro","Aluminio","Plástico"], correct:0,
+      explain:"El silicio es el material base de la mayoría de células, dopado con fósforo o boro." },
+    { q:"En la unión N-P, ¿en qué sentido pueden circular los electrones?", options:["En ambas direcciones por igual","Solo en un sentido, como un torniquete que no gira hacia atrás","Nunca circulan","Solo si hay una batería conectada"], correct:1,
+      explain:"El campo eléctrico de la unión N-P actúa como una válvula de un solo sentido." }
+  ]
+},
+{
+  title: "Componentes de una instalación fotovoltaica",
+  icon: "🔧",
+  html: `<p>Una instalación no es solo "poner paneles". Este es el orden lógico en el que trabaja la energía:</p>
+  <div class="component-diagram-box">
+    <svg viewBox="0 0 720 150" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagrama con los cinco componentes de una instalación fotovoltaica en orden: panel solar, regulador de carga, batería, inversor y cableado">
+      <!-- Panel solar -->
+      <g class="diagram-icon" transform="translate(0,0)" tabindex="0" role="button" aria-label="Panel solar: ver explicación" onclick="showComponentInfo('panel')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();showComponentInfo('panel');}">
+        <rect x="15" y="15" width="75" height="60" fill="#12324A" stroke="#3E7CA6" stroke-width="2" rx="4"/>
+        <line x1="15" y1="35" x2="90" y2="35" stroke="#3E7CA6" stroke-width="1.5"/>
+        <line x1="15" y1="55" x2="90" y2="55" stroke="#3E7CA6" stroke-width="1.5"/>
+        <line x1="40" y1="15" x2="40" y2="75" stroke="#3E7CA6" stroke-width="1.5"/>
+        <line x1="65" y1="15" x2="65" y2="75" stroke="#3E7CA6" stroke-width="1.5"/>
+        <text x="52" y="105" text-anchor="middle" font-size="12" font-weight="700" fill="#12324A">Panel</text>
+        <text x="52" y="119" text-anchor="middle" font-size="12" font-weight="700" fill="#12324A">solar</text>
+      </g>
+      <text x="127" y="55" text-anchor="middle" font-size="26" fill="#3E7CA6">➜</text>
+      <!-- Regulador de carga -->
+      <g class="diagram-icon" transform="translate(150,0)" tabindex="0" role="button" aria-label="Regulador de carga: ver explicación" onclick="showComponentInfo('regulador')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();showComponentInfo('regulador');}">
+        <rect x="15" y="8" width="75" height="70" fill="#fff" stroke="#3E7CA6" stroke-width="3" rx="8"/>
+        <circle cx="52" cy="43" r="19" fill="none" stroke="#F5A623" stroke-width="4"/>
+        <line x1="52" y1="43" x2="52" y2="27" stroke="#F5A623" stroke-width="3" stroke-linecap="round"/>
+        <text x="52" y="105" text-anchor="middle" font-size="12" font-weight="700" fill="#12324A">Regulador</text>
+        <text x="52" y="119" text-anchor="middle" font-size="12" font-weight="700" fill="#12324A">de carga</text>
+      </g>
+      <text x="277" y="55" text-anchor="middle" font-size="26" fill="#3E7CA6">➜</text>
+      <!-- Batería -->
+      <g class="diagram-icon" transform="translate(300,0)" tabindex="0" role="button" aria-label="Batería: ver explicación" onclick="showComponentInfo('bateria')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();showComponentInfo('bateria');}">
+        <rect x="38" y="6" width="28" height="12" fill="#3F9142" rx="2"/>
+        <rect x="20" y="18" width="65" height="60" fill="#fff" stroke="#3F9142" stroke-width="3" rx="6"/>
+        <path d="M 58 30 L 44 50 L 55 50 L 47 66 L 65 44 L 54 44 Z" fill="#3F9142"/>
+        <text x="52" y="105" text-anchor="middle" font-size="12" font-weight="700" fill="#12324A">Batería</text>
+      </g>
+      <text x="427" y="55" text-anchor="middle" font-size="26" fill="#3E7CA6">➜</text>
+      <!-- Inversor -->
+      <g class="diagram-icon" transform="translate(450,0)" tabindex="0" role="button" aria-label="Inversor: ver explicación" onclick="showComponentInfo('inversor')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();showComponentInfo('inversor');}">
+        <rect x="15" y="8" width="75" height="70" fill="#fff" stroke="#3E7CA6" stroke-width="3" rx="8"/>
+        <path d="M 25 43 Q 37 20, 49 43 T 79 43" stroke="#3E7CA6" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <text x="27" y="70" font-size="9" font-weight="700" fill="#12324A">CC</text>
+        <text x="70" y="70" font-size="9" font-weight="700" fill="#F5A623">CA</text>
+        <text x="52" y="105" text-anchor="middle" font-size="12" font-weight="700" fill="#12324A">Inversor</text>
+      </g>
+      <text x="577" y="55" text-anchor="middle" font-size="26" fill="#3E7CA6">➜</text>
+      <!-- Cableado y protecciones -->
+      <g class="diagram-icon" transform="translate(600,0)" tabindex="0" role="button" aria-label="Cableado y protecciones: ver explicación" onclick="showComponentInfo('cableado')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();showComponentInfo('cableado');}">
+        <rect x="15" y="8" width="75" height="70" fill="#fff" stroke="#12324A" stroke-width="3" rx="8"/>
+        <path d="M 27 55 L 45 55 L 45 30 L 68 30" stroke="#12324A" stroke-width="4" fill="none" stroke-linecap="round"/>
+        <circle cx="68" cy="30" r="5" fill="#D6484A"/>
+        <text x="52" y="105" text-anchor="middle" font-size="12" font-weight="700" fill="#12324A">Cableado y</text>
+        <text x="52" y="119" text-anchor="middle" font-size="12" font-weight="700" fill="#12324A">protecciones</text>
+      </g>
+    </svg>
+    <p style="text-align:center; font-size:.8rem; color:var(--sky-deep); margin:6px 0 0 0;">👆 Toca cada pieza del dibujo para ver qué hace</p>
+    <div id="componentInfoBox" style="text-align:center; font-weight:700; color:var(--navy); min-height:22px; margin-top:6px;"></div>
+  </div>
+  <p>1. <strong>Paneles solares (módulos)</strong>: grupo de células conectadas entre sí. Generan <strong>corriente continua (CC)</strong>, igual que las pilas de un mando a distancia.</p>
+  <p>2. <strong>Regulador de carga</strong>: vigila cuánta energía entra en las baterías para que no se rompan por sobrecarga.</p>
+  <p>3. <strong>Baterías</strong>: guardan la energía que no se usa en el momento, para gastarla de noche o en días nublados.</p>
+  <p>4. <strong>Inversor</strong>: convierte la corriente continua (CC) en <strong>corriente alterna (CA)</strong>, la que usan los enchufes de tu casa.</p>
+  <p>5. <strong>Cableado y protecciones</strong>: conectan todo el sistema y evitan cortocircuitos, como los fusibles de un enchufe.</p>
+  <p>Dato curioso: si la instalación está "conectada a red" (on-grid), muchas veces ni hace falta batería — lo que sobra se manda a la red eléctrica, y de noche consumes de ahí.</p>`,
+  miniCheck: { q:"¿Qué componente convierte la corriente continua en corriente alterna?", options:["Regulador de carga","Batería","Inversor","Cableado"], correct:2,
+    feedback:"El inversor transforma la CC de los paneles en CA, la que usan los aparatos de casa." },
+  testQuestions: [
+    { q:"¿Cuál es el orden correcto por el que fluye la energía en una instalación con batería?", options:["Panel → Inversor → Regulador → Batería","Panel → Regulador → Batería → Inversor","Batería → Panel → Inversor → Regulador","Inversor → Panel → Batería → Regulador"], correct:1,
+      explain:"El panel genera, el regulador controla la carga, la batería almacena y el inversor convierte a CA al final." },
+    { q:"¿Qué tipo de corriente generan los paneles solares?", options:["Corriente alterna (CA)","Corriente continua (CC)","Corriente estática","No generan corriente, solo voltaje"], correct:1,
+      explain:"Los paneles generan corriente continua (CC), como una pila." }
+  ]
+},
+{
+  title: "Qué factores afectan a la producción",
+  icon: "📐",
+  html: `<p><strong>Orientación:</strong> en España conviene orientar los paneles hacia el <strong>sur</strong>, porque es por donde el Sol pasa más tiempo y más alto en el cielo.</p>
+  <p><strong>Inclinación:</strong> el ángulo del panel debe dejar que la luz llegue lo más "de frente" posible. En España, entre 30° y 35° suele funcionar bien durante todo el año.</p>
+  <p><strong>Sombras:</strong> una sombra pequeña (una antena, un árbol, una chimenea) puede estropear la producción de todo el panel, no solo de la parte tapada — porque las células van conectadas en cadena, como las luces de una guirnalda de Navidad: si una falla o se tapa, puede afectar a varias más de la cadena.</p>
+  <p><strong>Meteorología y estaciones:</strong> las nubes bajan la irradiancia que llega. En invierno hay menos horas de sol y el Sol está más bajo, así que se produce menos que en verano. Curiosamente, el calor extremo también hace que el panel rinda un poco peor.</p>`,
+  miniCheck: { q:"En el hemisferio norte, ¿hacia dónde conviene orientar los paneles para producir más?", options:["Norte","Sur","Este","Oeste"], correct:1,
+    feedback:"Hacia el sur: es por donde el Sol pasa más tiempo y con más altura durante el día." },
+  testQuestions: [
+    { q:"¿Por qué una sombra parcial puede reducir mucho la producción de todo el panel?", options:["Porque los paneles se apagan por seguridad","Por cómo están conectadas las células entre sí","Porque el silicio se enfría de golpe","No afecta nada a la producción"], correct:1,
+      explain:"Las células suelen ir conectadas en serie, así que una célula tapada puede limitar a todas las demás de esa cadena." },
+    { q:"¿Qué inclinación aproximada suele ser un buen equilibrio anual en España?", options:["0°-5°","30°-35°","60°-65°","90°"], correct:1,
+      explain:"Un ángulo de 30°-35° suele equilibrar bien la producción a lo largo de todo el año en la mayoría del territorio español." }
+  ]
+},
+{
+  title: "Ventajas, limitaciones y usos reales",
+  icon: "⚖️",
+  html: `<p><strong>Ventajas:</strong> es una energía renovable que no se agota, no contamina al generar electricidad, se puede instalar en un tejado pequeño o en un campo enorme, y cada vez es más barata de fabricar e instalar.</p>
+  <p><strong>Limitaciones:</strong> depende de que haya luz solar (no produce de noche y produce menos en días nublados), necesita espacio para los paneles, fabricar paneles y baterías también gasta recursos y energía, y las baterías siguen siendo caras comparadas con el resto de la instalación.</p>
+  <p><strong>Usos reales:</strong> tejados de viviendas, huertos solares que dan luz a miles de hogares, farolas y semáforos autónomos, calculadoras, cargadores portátiles... e incluso la Estación Espacial Internacional funciona con paneles solares.</p>`,
+  miniCheck: { q:"¿Cuál de estas es una limitación real de la energía fotovoltaica?", options:["Genera muchas emisiones contaminantes","Depende de la luz solar","No sirve para ningún uso práctico","Es imposible instalarla en tejados"], correct:1,
+    feedback:"Su gran limitación es que depende de que haya luz solar disponible." },
+  testQuestions: [
+    { q:"¿Cuál de estas es una ventaja real de la energía fotovoltaica?", options:["Genera emisiones altas durante su funcionamiento","Es una energía renovable e inagotable a escala humana","Solo funciona en el espacio","Necesita combustibles fósiles para producir"], correct:1,
+      explain:"Es renovable e inagotable a escala humana, y no emite contaminantes al generar electricidad." },
+    { q:"¿Cuál de estos es un uso real de la fotovoltaica mencionado en la teoría?", options:["Farolas y señales de tráfico autónomas","Motores de combustión interna","Calefacción a gas natural","Refinerías de petróleo"], correct:0,
+      explain:"Las farolas y señales autónomas suelen llevar su propio panel fotovoltaico y batería." }
+  ]
+}
+];
+
+/* ---------- INFO CLICABLE DEL DIAGRAMA DE COMPONENTES (Bloque 4) ---------- */
+const componentInfoText = {
+  panel: "🔷 Panel solar: conjunto de células fotovoltaicas conectadas entre sí. Genera corriente continua (CC) a partir de la luz del Sol.",
+  regulador: "🎛️ Regulador de carga: controla cuánta energía entra a las baterías para que no se sobrecarguen ni se dañen.",
+  bateria: "🔋 Batería: almacena la energía que no se consume en el momento, para usarla de noche o en días nublados.",
+  inversor: "🔁 Inversor: convierte la corriente continua (CC) de los paneles en corriente alterna (CA), la que usan la mayoría de aparatos de casa.",
+  cableado: "🔌 Cableado y protecciones: conecta todo el sistema y evita sobrecargas o cortocircuitos."
+};
+const componentInfoSeen = new Set();
+let componentInfoBonusGiven = false;
+function showComponentInfo(key){
+  const box = document.getElementById('componentInfoBox');
+  if(box) box.textContent = componentInfoText[key] || '';
+  componentInfoSeen.add(key);
+  if(componentInfoSeen.size === Object.keys(componentInfoText).length && !componentInfoBonusGiven){
+    componentInfoBonusGiven = true;
+    addVatios(10, 'has revisado los 5 componentes del diagrama');
+  }
+}
+
+/* ---------- RENDER ACORDEÓN ---------- */
+function renderAccordion(){
+  const cont = document.getElementById('accordionContainer');
+  cont.innerHTML = '';
+  blocksData.forEach((block, i)=>{
+    const item = document.createElement('div');
+    item.className = 'accordion-item';
+    item.innerHTML = `
+      <button class="accordion-header" data-idx="${i}">
+        <span class="htxt">${block.icon} Bloque ${i+1}: ${block.title}</span>
+        <span style="display:flex; align-items:center; gap:8px;">
+          <span class="chip ${state.blocksRead[i] ? 'done':''}" id="chip-${i}">${state.blocksRead[i] ? '✓ Leído' : 'Pendiente'}</span>
+          <span class="arrow">▾</span>
+        </span>
+      </button>
+      <div class="accordion-body" id="body-${i}">
+        <div class="accordion-body-inner">
+          ${block.html}
+          <div style="text-align:center; margin-top:10px;">
+            <button class="btn-leido" id="leido-${i}" ${state.blocksRead[i] ? 'disabled':''}>✓ He leído este bloque</button>
+          </div>
+          <div class="mini-check">
+            <p>Comprobación rápida: ${block.miniCheck.q}</p>
+            <div id="miniopts-${i}"></div>
+            <div class="feedback-box" id="minifeedback-${i}"></div>
+          </div>
+        </div>
+      </div>
+    `;
+    cont.appendChild(item);
+  });
+
+  // listeners acordeón
+  cont.querySelectorAll('.accordion-header').forEach(h=>{
+    h.addEventListener('click', ()=>{
+      const idx = h.dataset.idx;
+      const body = document.getElementById('body-'+idx);
+      const isOpen = body.classList.contains('open');
+      body.classList.toggle('open', !isOpen);
+      h.classList.toggle('open', !isOpen);
+    });
+  });
+  // botones "he leido"
+  blocksData.forEach((block,i)=>{
+    document.getElementById('leido-'+i).addEventListener('click', ()=>{
+      if(state.blocksRead[i]) return;
+      state.blocksRead[i] = true;
+      document.getElementById('leido-'+i).disabled = true;
+      document.getElementById('chip-'+i).textContent = '✓ Leído';
+      document.getElementById('chip-'+i).classList.add('done');
+      addVatios(10, `bloque ${i+1} leído`);
+      checkAllBlocksRead();
+    });
+    renderMiniCheck(i);
+  });
+}
+function renderMiniCheck(i){
+  const block = blocksData[i];
+  const optsDiv = document.getElementById('miniopts-'+i);
+  optsDiv.innerHTML = '';
+  block.miniCheck.options.forEach((opt, oi)=>{
+    const b = document.createElement('button');
+    b.className = 'opt-btn';
+    b.textContent = opt;
+    if(state.miniCheckDone[i]){
+      b.disabled = true;
+      if(oi === block.miniCheck.correct) b.classList.add('correct');
+      if(oi === state.miniCheckCorrect[i] && oi !== block.miniCheck.correct) b.classList.add('incorrect');
+    }
+    b.addEventListener('click', ()=>{
+      if(state.miniCheckDone[i]) return;
+      state.miniCheckDone[i] = true;
+      state.miniCheckCorrect[i] = oi;
+      const isRight = oi === block.miniCheck.correct;
+      addVatios(isRight ? 10 : 2, isRight ? `respuesta correcta bloque ${i+1}` : `intento bloque ${i+1}`);
+      document.getElementById('minifeedback-'+i).textContent = (isRight ? '✅ ' : '❌ ') + block.miniCheck.feedback;
+      document.getElementById('minifeedback-'+i).style.color = isRight ? 'var(--leaf)' : 'var(--danger)';
+      renderMiniCheck(i);
+      persistState();
+    });
+    optsDiv.appendChild(b);
+  });
+}
+function checkAllBlocksRead(){
+  if(state.blocksRead.every(b=>b) && !state.allBlocksBonusGiven){
+    state.allBlocksBonusGiven = true;
+    addVatios(20, '¡todos los bloques leídos!');
+  }
+}
+
+/* ============================================================
+   CÉLULA FOTOVOLTAICA INTERACTIVA
+   ============================================================ */
+const cellSvg = document.getElementById('cellSvg');
+function drawCellBase(){
+  cellSvg.innerHTML = `
+    <rect x="40" y="150" width="260" height="34" fill="#F5D48A" stroke="#946200" stroke-width="2" rx="4"/>
+    <text x="170" y="172" text-anchor="middle" font-weight="800" fill="#946200" font-size="14">Capa N</text>
+    <rect x="40" y="184" width="260" height="34" fill="#9AD1F0" stroke="#12324A" stroke-width="2" rx="4"/>
+    <text x="170" y="206" text-anchor="middle" font-weight="800" fill="#12324A" font-size="14">Capa P</text>
+    <line x1="40" y1="184" x2="300" y2="184" stroke="#D6484A" stroke-width="3" stroke-dasharray="6 4"/>
+    <text x="170" y="140" text-anchor="middle" font-size="12" fill="#3E7CA6">unión N-P (como un torniquete: solo pasa en un sentido)</text>
+    <path id="wireTop" d="M 300 165 L 520 165 L 520 230 L 560 230" fill="none" stroke="#12324A" stroke-width="3"/>
+    <path id="wireBottom" d="M 40 200 L 20 200 L 20 260 L 560 260 L 560 230" fill="none" stroke="#12324A" stroke-width="3"/>
+    <g transform="translate(555,205)">
+      <circle cx="20" cy="25" r="26" fill="#FFF3D6" stroke="#946200" stroke-width="3" id="bulbCircle"/>
+      <text x="20" y="31" text-anchor="middle" font-size="20">💡</text>
+    </g>
+    <text x="600" y="290" text-anchor="middle" font-size="11" fill="#3E7CA6">circuito externo</text>
+  `;
+}
+drawCellBase();
+function launchPhoton(){
+  const photon = document.createElementNS("http://www.w3.org/2000/svg","circle");
+  photon.setAttribute("r","7");
+  photon.setAttribute("fill","#F5A623");
+  photon.setAttribute("cx", 150 + Math.random()*40);
+  photon.setAttribute("cy","20");
+  cellSvg.appendChild(photon);
+  let y = 20;
+  const targetY = 165;
+  const fallInterval = setInterval(()=>{
+    y += 8;
+    photon.setAttribute("cy", y);
+    if(y >= targetY){
+      clearInterval(fallInterval);
+      photon.remove();
+      releaseElectron(parseFloat(photon.getAttribute("cx")));
+    }
+  }, 16);
+}
+function releaseElectron(startX){
+  state.photonsLaunched++;
+  document.getElementById('electronCount').textContent = state.photonsLaunched;
+  const electron = document.createElementNS("http://www.w3.org/2000/svg","circle");
+  electron.setAttribute("r","6");
+  electron.setAttribute("fill","#3E7CA6");
+  electron.setAttribute("cx", startX);
+  electron.setAttribute("cy","165");
+  cellSvg.appendChild(electron);
+  // trayectoria: sube un poco por capa N, luego recorre el cable hasta la bombilla
+  const path = [
+    {x:startX, y:165}, {x:300, y:165}, {x:520,y:165}, {x:520,y:230}, {x:576,y:230}
+  ];
+  let step = 0;
+  function animateStep(){
+    if(step >= path.length-1){
+      electron.remove();
+      const bulb = document.getElementById('bulbCircle');
+      if(bulb){
+        bulb.setAttribute('fill', '#FFD166');
+        setTimeout(()=> bulb.setAttribute('fill', '#FFF3D6'), 500);
+      }
+      if(state.photonsLaunched >= 3 && !state.photonBonusGiven){
+        state.photonBonusGiven = true;
+        addVatios(15, 'circuito de la célula fotovoltaica completado');
+      }
+      persistState();
+      return;
+    }
+    const from = path[step], to = path[step+1];
+    const dur = 30; let t=0;
+    const mv = setInterval(()=>{
+      t++;
+      const p = t/dur;
+      electron.setAttribute("cx", from.x + (to.x-from.x)*p);
+      electron.setAttribute("cy", from.y + (to.y-from.y)*p);
+      if(p>=1){ clearInterval(mv); step++; animateStep(); }
+    }, 10);
+  }
+  animateStep();
+}
+document.getElementById('launchPhotonBtn').addEventListener('click', launchPhoton);
+
+/* ============================================================
+   SIMULADOR
+   ============================================================ */
+const tiltRange = document.getElementById('tiltRange');
+const tiltVal = document.getElementById('tiltVal');
+tiltRange.addEventListener('input', ()=>{ tiltVal.textContent = tiltRange.value; drawSimStage(); });
+document.getElementById('seasonSelect').addEventListener('change', drawSimStage);
+document.getElementById('weatherSelect').addEventListener('change', drawSimStage);
+
+function computeProduction(){
+  const tilt = parseFloat(tiltRange.value);
+  const season = document.getElementById('seasonSelect').value;
+  const weather = document.getElementById('weatherSelect').value;
+  const baseBySeason = { verano:1000, primavera:800, otono:600, invierno:400 };
+  const weatherFactor = { soleado:1.0, parcial:0.7, nublado:0.4, lluvia:0.2 };
+  const optimalAngle = 33;
+  const angleFactor = Math.max(0.3, Math.cos((tilt - optimalAngle) * Math.PI/180));
+  const prod = Math.round(baseBySeason[season] * weatherFactor[weather] * angleFactor);
+  return { prod, season, weather, tilt };
+}
+function drawSimStage(){
+  const {tilt, weather} = computeProduction();
+  const svg = document.getElementById('simSvg');
+  const sunY = 40;
+  const cloudOpacity = weather === 'nublado' ? 0.9 : (weather === 'parcial' ? 0.5 : 0);
+  const rainOpacity = weather === 'lluvia' ? 0.9 : 0;
+  const panelAngle = tilt; // grados de inclinacion
+  svg.innerHTML = `
+    <rect x="0" y="0" width="400" height="320" fill="none"/>
+    <circle cx="330" cy="${sunY}" r="26" fill="#F5A623" opacity="${weather==='lluvia'?0.25:1}"/>
+    <g opacity="${cloudOpacity}">
+      <ellipse cx="120" cy="55" rx="55" ry="22" fill="#CFCFCF"/>
+      <ellipse cx="220" cy="45" rx="40" ry="18" fill="#E2E2E2"/>
+    </g>
+    <g opacity="${rainOpacity}">
+      ${[...Array(10)].map((_,i)=>`<line x1="${20+i*35}" y1="80" x2="${10+i*35}" y2="120" stroke="#3E7CA6" stroke-width="2"/>`).join('')}
+    </g>
+    <rect x="0" y="230" width="400" height="90" fill="#DCEFE0"/>
+    <g transform="translate(160,230) rotate(${-panelAngle} 40 0)">
+      <rect x="0" y="-70" width="80" height="70" fill="#12324A" stroke="#3E7CA6" stroke-width="2"/>
+      <line x1="0" y1="-35" x2="80" y2="-35" stroke="#3E7CA6" stroke-width="1"/>
+      <line x1="40" y1="-70" x2="40" y2="0" stroke="#3E7CA6" stroke-width="1"/>
+    </g>
+    <text x="200" y="300" text-anchor="middle" font-size="12" fill="#12324A">Inclinación: ${tilt}°</text>
+  `;
+}
+document.getElementById('calcSimBtn').addEventListener('click', ()=>{
+  const {prod} = computeProduction();
+  document.getElementById('prodVal').textContent = prod;
+  document.getElementById('prodBar').style.width = Math.min(100, prod/10) + '%';
+  state.simCalculations++;
+  if(prod > state.simBestProd) state.simBestProd = prod;
+  if(state.simCalculations === 1) addVatios(10, 'primera simulación calculada');
+  if(prod >= 800 && !state.simBonusGiven){
+    state.simBonusGiven = true;
+    addVatios(15, '¡combinación óptima encontrada!');
+  }
+  persistState();
+});
+drawSimStage();
+
+/* ============================================================
+   MONTAJE — SECUENCIA DE INSTALACIÓN
+   ============================================================ */
+const installPieces = ["Paneles solares","Regulador de carga","Baterías","Inversor","Cableado y protecciones"];
+const installCorrectOrder = ["Paneles solares","Regulador de carga","Baterías","Inversor","Cableado y protecciones"];
+const installIcons = {
+  "Paneles solares": "🔷",
+  "Regulador de carga": "🎛️",
+  "Baterías": "🔋",
+  "Inversor": "🔁",
+  "Cableado y protecciones": "🔌"
+};
+let installShuffled = [];
+function shuffle(arr){ const a = arr.slice(); for(let i=a.length-1;i>0;i--){ const j = Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function renderInstall(){
+  installShuffled = shuffle(installPieces);
+  state.installSeq = [];
+  document.getElementById('installFeedback').textContent = '';
+  const pool = document.getElementById('installPool');
+  pool.innerHTML = '';
+  installShuffled.forEach(piece=>{
+    const b = document.createElement('button');
+    b.className = 'install-piece';
+    b.innerHTML = `<span aria-hidden="true">${installIcons[piece] || ''}</span> ${piece}`;
+    b.addEventListener('click', ()=> handleInstallPick(piece, b));
+    pool.appendChild(b);
+  });
+  renderInstallSeq();
+}
+function renderInstallSeq(){
+  const ol = document.getElementById('installSeq');
+  ol.innerHTML = '';
+  state.installSeq.forEach(p=>{
+    const li = document.createElement('li');
+    li.innerHTML = `<span aria-hidden="true">${installIcons[p] || ''}</span> ${p}`;
+    ol.appendChild(li);
+  });
+}
+function handleInstallPick(piece, btn){
+  if(state.installCompleted) return;
+  const expected = installCorrectOrder[state.installSeq.length];
+  if(piece === expected){
+    state.installSeq.push(piece);
+    btn.disabled = true;
+    renderInstallSeq();
+    if(state.installSeq.length === installCorrectOrder.length){
+      state.installCompleted = true;
+      document.getElementById('installFeedback').style.color = 'var(--leaf)';
+      document.getElementById('installFeedback').textContent = '✅ ¡Instalación montada en el orden correcto!';
+      addVatios(20, 'instalación montada correctamente');
+    }
+  } else {
+    state.installAttempts++;
+    document.getElementById('installFeedback').style.color = 'var(--danger)';
+    document.getElementById('installFeedback').textContent = `❌ Ese componente no va ahora. Pista: piensa en qué genera la energía primero.`;
+    state.installSeq = [];
+    renderInstallSeq();
+    document.querySelectorAll('.install-piece').forEach(b=> b.disabled = false);
+  }
+  persistState();
+}
+document.getElementById('installResetBtn').addEventListener('click', ()=>{
+  state.installCompleted = false;
+  renderInstall();
+});
+
+/* ============================================================
+   TEJADO — OPTIMIZA TU TEJADO
+   ============================================================ */
+const ROOF_COLS = 6, ROOF_ROWS = 4;
+const shadowCells = [2, 3, 9, 14, 15, 20]; // indices fijos con sombra (chimenea/antena/arbol)
+function renderRoof(){
+  document.getElementById('roofBudgetLabel').textContent = ROOF_BUDGET;
+  document.getElementById('roofBudget').textContent = ROOF_BUDGET;
+  const grid = document.getElementById('roofGrid');
+  grid.innerHTML = '';
+  for(let i=0;i<ROOF_COLS*ROOF_ROWS;i++){
+    const cell = document.createElement('button');
+    cell.className = 'roof-cell';
+    const isShadow = shadowCells.includes(i);
+    if(isShadow) cell.classList.add('shadow');
+    if(state.roofPlaced.has(i)) cell.classList.add('panel');
+    cell.setAttribute('aria-label', isShadow ? 'Casilla con sombra' : 'Casilla soleada');
+    cell.textContent = isShadow ? '🌳' : (state.roofPlaced.has(i) ? '🔆' : '');
+    cell.addEventListener('click', ()=> toggleRoofCell(i, isShadow));
+    grid.appendChild(cell);
+  }
+  document.getElementById('roofPlaced').textContent = state.roofPlaced.size;
+}
+function toggleRoofCell(i, isShadow){
+  if(isShadow){
+    showToast('🌳 Ahí hay sombra: ese panel apenas produciría.');
+    return;
+  }
+  if(state.roofPlaced.has(i)){
+    state.roofPlaced.delete(i);
+  } else {
+    if(state.roofPlaced.size >= ROOF_BUDGET){
+      showToast(`Ya has usado tu presupuesto de ${ROOF_BUDGET} paneles.`);
+      return;
+    }
+    state.roofPlaced.add(i);
+  }
+  renderRoof();
+  persistState();
+}
+document.getElementById('roofCalcBtn').addEventListener('click', ()=>{
+  const validPlaced = Array.from(state.roofPlaced).filter(i=> !shadowCells.includes(i)).length;
+  let stars = 0;
+  if(validPlaced >= 10) stars = 3;
+  else if(validPlaced >= 6) stars = 2;
+  else if(validPlaced >= 1) stars = 1;
+  document.getElementById('roofStars').textContent = '⭐'.repeat(stars) + '☆'.repeat(3-stars);
+  document.getElementById('roofFeedback').textContent = `Producción estimada con ${validPlaced} paneles bien colocados.`;
+  if(stars > state.roofStars){
+    addVatios(stars*10, `${stars} estrella(s) en el tejado`);
+    state.roofStars = stars;
+  }
+  if(validPlaced > state.roofBestValid) state.roofBestValid = validPlaced;
+  persistState();
+});
+document.getElementById('roofResetBtn').addEventListener('click', ()=>{
+  state.roofPlaced = new Set();
+  document.getElementById('roofStars').textContent = '';
+  document.getElementById('roofFeedback').textContent = '';
+  renderRoof();
+  persistState();
+});
+
+/* ============================================================
+   DETECTA EL FALLO
+   ============================================================ */
+const faultCases = [
+  { symptom:"Los paneles generan electricidad durante el día, pero los aparatos de casa no reciben corriente en el formato que necesitan: todo se queda como corriente continua y no llega corriente alterna a los enchufes.",
+    options:["Panel solar","Regulador de carga","Batería","Inversor","Cableado y protecciones"], correct:3,
+    explain:"Si la CC no se convierte en CA, el fallo está en el inversor, que es quien hace esa conversión." },
+  { symptom:"Las baterías se sobrecargan con frecuencia y se estropean antes de tiempo, aunque los paneles funcionan bien.",
+    options:["Panel solar","Regulador de carga","Batería","Inversor","Cableado y protecciones"], correct:1,
+    explain:"El regulador de carga es quien controla cuánta energía entra a las baterías; si falla, se sobrecargan." },
+  { symptom:"Un panel concreto no genera nada de electricidad al mediodía en pleno sol, mientras que los paneles de al lado sí funcionan con normalidad.",
+    options:["Panel solar o su cableado","Regulador de carga","Batería","Inversor","Meteorología"], correct:0,
+    explain:"Si solo falla ese panel y hace sol, lo más probable es una avería en el propio panel o en su conexión." },
+  { symptom:"Por la noche, sin sol, la casa se queda completamente sin electricidad, aunque durante el día todo funcionaba genial y no hay cortes en la red eléctrica.",
+    options:["Panel solar","Regulador de carga","Batería","Inversor","Cableado y protecciones"], correct:2,
+    explain:"Si no hay energía almacenada para usar de noche, el problema está en las baterías (no cargan o están agotadas)." },
+  { symptom:"Salta un fusible constantemente y hay riesgo de cortocircuito visible en el cuadro eléctrico de la instalación.",
+    options:["Panel solar","Regulador de carga","Batería","Inversor","Cableado y protecciones"], correct:4,
+    explain:"Los fusibles y cortocircuitos apuntan al cableado y a sus protecciones." }
+];
+function renderFaults(){
+  const cont = document.getElementById('faultContainer');
+  cont.innerHTML = '';
+  faultCases.forEach((c,i)=>{
+    const card = document.createElement('div');
+    card.className = 'fault-card';
+    card.innerHTML = `<p><strong>Caso ${i+1}:</strong> ${c.symptom}</p><div class="fault-options" id="faultopts-${i}"></div><div class="feedback-box" id="faultfeedback-${i}"></div>`;
+    cont.appendChild(card);
+    const optsDiv = card.querySelector('#faultopts-'+i);
+    c.options.forEach((opt,oi)=>{
+      const b = document.createElement('button');
+      b.className = 'opt-btn';
+      b.textContent = opt;
+      const answered = state.faultAnswered[i] !== undefined;
+      if(answered){
+        b.disabled = true;
+        if(oi === c.correct) b.classList.add('correct');
+        if(oi === state.faultAnswered[i] && oi !== c.correct) b.classList.add('incorrect');
+      }
+      b.addEventListener('click', ()=>{
+        if(state.faultAnswered[i] !== undefined) return;
+        state.faultAnswered[i] = oi;
+        const isRight = oi === c.correct;
+        if(isRight){ state.faultCorrectCount++; addVatios(10, `caso ${i+1} resuelto`); }
+        else { addVatios(2, `intento en caso ${i+1}`); }
+        card.querySelector('#faultfeedback-'+i).textContent = (isRight?'✅ ':'❌ ') + c.explain;
+        card.querySelector('#faultfeedback-'+i).style.color = isRight ? 'var(--leaf)' : 'var(--danger)';
+        renderFaults();
+      });
+      optsDiv.appendChild(b);
+    });
+  });
+}
+
+/* ============================================================
+   TEST FINAL
+   ============================================================ */
+function renderTest(){
+  const cont = document.getElementById('testContainer');
+  cont.innerHTML = '';
+  let qNum = 0;
+  blocksData.forEach((block, bi)=>{
+    block.testQuestions.forEach((tq, ti)=>{
+      const qId = `${bi}-${ti}`;
+      qNum++;
+      const card = document.createElement('div');
+      card.className = 'q-card';
+      card.innerHTML = `<div class="q-block-tag">Bloque ${bi+1} · ${block.title}</div>
+        <h4>${qNum}. ${tq.q}</h4>
+        <div id="testopts-${qId}"></div>`;
+      cont.appendChild(card);
+      const optsDiv = card.querySelector('#testopts-'+qId);
+      tq.options.forEach((opt, oi)=>{
+        const b = document.createElement('button');
+        b.className = 'opt-btn';
+        b.textContent = opt;
+        b.disabled = state.testSubmitted;
+        if(state.testAnswers[qId] === oi) b.style.borderColor = 'var(--navy)';
+        b.addEventListener('click', ()=>{
+          if(state.testSubmitted) return;
+          state.testAnswers[qId] = oi;
+          renderTest();
+        });
+        optsDiv.appendChild(b);
+      });
+    });
+  });
+}
+document.getElementById('submitTestBtn').addEventListener('click', ()=>{
+  if(state.testSubmitted) return;
+  let score = 0;
+  const failedBlocks = new Set();
+  let qNum = 0;
+  const resultsHtml = [];
+  blocksData.forEach((block,bi)=>{
+    block.testQuestions.forEach((tq,ti)=>{
+      qNum++;
+      const qId = `${bi}-${ti}`;
+      const chosen = state.testAnswers[qId];
+      const isRight = chosen === tq.correct;
+      if(isRight) score++; else failedBlocks.add(bi+1);
+    });
+  });
+  state.testSubmitted = true;
+  state.testScore = score;
+  state.testFailedBlocks = Array.from(failedBlocks);
+  addVatios(score*5, `test final: ${score}/12 aciertos`);
+  let medal, medalClass;
+  const pct = score/12;
+  if(pct >= 0.9){ medal='🥇 Medalla de Oro'; medalClass='medal-oro'; }
+  else if(pct >= 0.7){ medal='🥈 Medalla de Plata'; medalClass='medal-plata'; }
+  else if(pct >= 0.5){ medal='🥉 Medalla de Bronce'; medalClass='medal-bronce'; }
+  else { medal='🌱 Medalla Semilla (¡a seguir intentándolo!)'; medalClass='medal-semilla'; }
+  state.medal = medal;
+  document.getElementById('testResult').innerHTML = `
+    <h3>Resultado: ${score}/12</h3>
+    <div class="medal-badge ${medalClass}">${medal}</div>
+    ${failedBlocks.size ? `<p style="margin-top:12px;">Te recomendamos repasar: ${Array.from(failedBlocks).map(b=>`<strong>Bloque ${b}</strong>`).join(', ')}.</p>` : `<p style="margin-top:12px;">¡Has acertado todo! 🎉</p>`}
+  `;
+  renderTest();
+  renderTestExplanations();
+  persistState();
+});
+function renderTestExplanations(){
+  const cont = document.getElementById('testContainer');
+  cont.innerHTML = '';
+  let qNum = 0;
+  blocksData.forEach((block, bi)=>{
+    block.testQuestions.forEach((tq, ti)=>{
+      qNum++;
+      const qId = `${bi}-${ti}`;
+      const chosen = state.testAnswers[qId];
+      const isRight = chosen === tq.correct;
+      const card = document.createElement('div');
+      card.className = 'q-card';
+      card.innerHTML = `<div class="q-block-tag">Bloque ${bi+1} · ${block.title}</div>
+        <h4>${qNum}. ${tq.q}</h4>
+        <div>${tq.options.map((opt,oi)=>{
+          let cls = 'opt-btn';
+          if(oi === tq.correct) cls += ' correct';
+          else if(oi === chosen) cls += ' incorrect';
+          return `<div class="${cls}" style="cursor:default;">${opt}</div>`;
+        }).join('')}</div>
+        <div class="feedback-box" style="color:${isRight?'var(--leaf)':'var(--danger)'}">${isRight?'✅ ':'❌ '}${tq.explain} ${isRight?'':'— repasa el Bloque '+(bi+1)+'.'}</div>`;
+      cont.appendChild(card);
+    });
+  });
+}
+
+/* ============================================================
+   AUTOEVALUACIÓN
+   ============================================================ */
+document.querySelectorAll('.semaforo button').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    document.querySelectorAll('.semaforo button').forEach(x=>x.classList.remove('selected'));
+    b.classList.add('selected');
+    state.selfAssessment = b.dataset.val;
+  });
+});
+document.getElementById('saveAutoBtn').addEventListener('click', ()=>{
+  state.selfNote = document.getElementById('autoNote').value;
+  if(!state.selfAssessment){
+    document.getElementById('autoFeedback').textContent = 'Elige primero un color antes de guardar.';
+    document.getElementById('autoFeedback').style.color = 'var(--danger)';
+    return;
+  }
+  addVatios(10, 'autoevaluación completada');
+  document.getElementById('autoFeedback').textContent = '✅ Autoevaluación guardada. ¡Gracias por tu sinceridad!';
+  document.getElementById('autoFeedback').style.color = 'var(--leaf)';
+  persistState();
+});
+
+/* ============================================================
+   INICIALIZACIÓN
+   ============================================================ */
+function init(){
+  loadState();
+  updateBatteryUI();
+  renderAccordion();
+  renderInstall();
+  renderRoof();
+  renderFaults();
+  if(state.testSubmitted) renderTestExplanations(); else renderTest();
+  if(state.selfAssessment){
+    document.querySelectorAll('.semaforo button').forEach(b=>{
+      if(b.dataset.val === state.selfAssessment) b.classList.add('selected');
+    });
+  }
+  if(state.selfNote) document.getElementById('autoNote').value = state.selfNote;
+}
+init();
+</script>
+</body>
+</html>
